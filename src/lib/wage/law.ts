@@ -36,6 +36,8 @@ export type JurisdictionId = "ca" | "los-angeles" | "san-francisco" | "san-jose"
 export type Jurisdiction = {
   id: JurisdictionId;
   name: string;
+  /** Name used inside sentences ("the minimum wage in Los Angeles"). */
+  shortName: string;
   /** Minimum hourly wage in dollars. */
   minimumWage: number;
   effective: string;
@@ -46,6 +48,7 @@ export const JURISDICTIONS: Record<JurisdictionId, Jurisdiction> = {
   ca: {
     id: "ca",
     name: "California (statewide)",
+    shortName: "California",
     minimumWage: 16.9,
     effective: "2026-01-01",
     source: CITATIONS.minimumWage,
@@ -53,6 +56,7 @@ export const JURISDICTIONS: Record<JurisdictionId, Jurisdiction> = {
   "los-angeles": {
     id: "los-angeles",
     name: "City of Los Angeles",
+    shortName: "Los Angeles",
     minimumWage: 18.42,
     effective: "2026-07-01",
     source: { cite: "L.A. Mun. Code §187.02", url: "https://wagesla.lacity.gov/" },
@@ -60,6 +64,7 @@ export const JURISDICTIONS: Record<JurisdictionId, Jurisdiction> = {
   "san-francisco": {
     id: "san-francisco",
     name: "San Francisco",
+    shortName: "San Francisco",
     minimumWage: 19.61,
     effective: "2026-07-01",
     source: {
@@ -70,6 +75,7 @@ export const JURISDICTIONS: Record<JurisdictionId, Jurisdiction> = {
   "san-jose": {
     id: "san-jose",
     name: "San José",
+    shortName: "San José",
     minimumWage: 18.45,
     effective: "2026-01-01",
     source: {
@@ -80,6 +86,7 @@ export const JURISDICTIONS: Record<JurisdictionId, Jurisdiction> = {
   oakland: {
     id: "oakland",
     name: "Oakland",
+    shortName: "Oakland",
     minimumWage: 17.34,
     effective: "2026-01-01",
     source: {
