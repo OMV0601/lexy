@@ -190,7 +190,7 @@ export function StepResult({
 
       {/* Over time */}
       {owedSomething && (
-        <motion.section {...rise(1.5)} className="rounded-xl bg-cream p-6 sm:p-8">
+        <motion.section id="over-time" {...rise(1.5)} className="scroll-mt-24 rounded-xl bg-cream p-6 sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <div>
               <p className="text-eyebrow text-lemon">{r.zoomEyebrow}</p>

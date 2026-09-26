@@ -17,10 +17,25 @@ import { StepPay } from "./step-pay";
 import { StepResult } from "./step-result";
 import { StepClaim } from "./step-claim";
 
+/** Demo pacing, in milliseconds. Tuned for a narrated screen recording. */
+const BEAT = {
+  pickCity: 1400,
+  afterCity: 1100,
+  afterFill: 1900,
+  afterRest: 1200,
+  typeDigit: 220,
+  afterAmount: 1000,
+  sweepStart: 5200,
+  sweepStep: 45,
+  toClaim: 3800,
+};
+
 export function Checker({ demo }: { demo?: string | null }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const playing = demo === "play";
   const [state, dispatch] = useReducer(reducer, demo === "rosa" ? demoState : initialState);
-  const [weeks, setWeeks] = useState(26);
+  const [weeks, setWeeks] = useState(playing ? 1 : 26);
+  const [autoType, setAutoType] = useState<string | null>(null);
 
   const input = useMemo(() => weekInput(state), [state]);
   const result = useMemo(() => (input ? computeWeek(input) : null), [input]);
@@ -30,6 +45,45 @@ export function Checker({ demo }: { demo?: string | null }) {
   }, [state.step]);
 
   const go = (step: Step) => dispatch({ type: "go", step });
+
+  // Demo mode: play Rosa's whole story hands-free, one beat at a time.
+  useEffect(() => {
+    if (!playing) return;
+    const timers: number[] = [];
+    const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+
+    if (state.step === 0) {
+      at(BEAT.pickCity, () => dispatch({ type: "setJurisdiction", id: "los-angeles" }));
+      at(BEAT.pickCity + BEAT.afterCity, () => dispatch({ type: "go", step: 1 }));
+    } else if (state.step === 1) {
+      at(300, () =>
+        setAutoType(lang === "es" ? "lunes a sábado de 8 a 8, sin descanso" : "Mon–Sat, 8am to 8pm, no break"),
+      );
+    } else if (state.step === 2) {
+      const digits = "700";
+      digits.split("").forEach((_, i) =>
+        at(700 + i * BEAT.typeDigit, () => dispatch({ type: "setField", field: "amount", value: digits.slice(0, i + 1) })),
+      );
+      at(700 + digits.length * BEAT.typeDigit + BEAT.afterAmount, () => dispatch({ type: "go", step: 3 }));
+    } else if (state.step === 3) {
+      // Bring the over-time card into view, sweep it from one week to one year,
+      // then move on to the claim summary.
+      at(BEAT.sweepStart - 900, () =>
+        document.getElementById("over-time")?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      );
+      for (let w = 2; w <= 52; w++) at(BEAT.sweepStart + (w - 2) * BEAT.sweepStep, () => setWeeks(w));
+      at(BEAT.sweepStart + 51 * BEAT.sweepStep + BEAT.toClaim, () => dispatch({ type: "go", step: 4 }));
+    }
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }, [playing, state.step, lang]);
+
+  function afterDemoTyping() {
+    const timers = [
+      window.setTimeout(() => dispatch({ type: "setRest", value: false }), BEAT.afterFill),
+      window.setTimeout(() => dispatch({ type: "go", step: 2 }), BEAT.afterFill + BEAT.afterRest),
+    ];
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }
 
   const canContinue =
     (state.step === 0 && state.jurisdiction !== null) ||
@@ -104,6 +158,8 @@ export function Checker({ demo }: { demo?: string | null }) {
                 onRemove={(day) => dispatch({ type: "removeShift", day })}
                 onBreak={(minutes) => dispatch({ type: "setBreak", minutes })}
                 onRest={(value) => dispatch({ type: "setRest", value })}
+                autoType={playing ? autoType : null}
+                onAutoTypeDone={afterDemoTyping}
               />
             )}
             {state.step === 2 && (
