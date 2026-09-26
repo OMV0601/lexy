@@ -1,16 +1,18 @@
+import { useId } from "react";
 import { clsx } from "clsx";
 
 /** Clock face whose minute hand has been pulled back — time that was taken. */
 export function LogoMark({ className }: { className?: string }) {
+  const gradient = `clocked-mark-${useId().replace(/:/g, "")}`;
   return (
     <svg viewBox="0 0 32 32" aria-hidden className={clsx("size-7", className)}>
       <defs>
-        <linearGradient id="clocked-mark" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#665efd" />
           <stop offset="1" stopColor="#2e2b8c" />
         </linearGradient>
       </defs>
-      <rect width="32" height="32" rx="9" fill="url(#clocked-mark)" />
+      <rect width="32" height="32" rx="9" fill={`url(#${gradient})`} />
       <circle cx="16" cy="16" r="9" fill="none" stroke="white" strokeWidth="2" opacity="0.95" />
       <path d="M16 16 L16 10.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
       <path d="M16 16 L20 18.5" stroke="#f96bee" strokeWidth="2" strokeLinecap="round" />

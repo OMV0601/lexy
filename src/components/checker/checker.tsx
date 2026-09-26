@@ -93,7 +93,7 @@ export function Checker({ demo }: { demo?: string | null }) {
   const steps = t.check.steps;
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-canvas-soft">
+    <div className="flex min-h-full flex-1 flex-col bg-canvas-soft print:bg-white">
       <header className="sticky top-0 z-20 border-b border-hairline bg-white/85 backdrop-blur-md print:hidden">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-5">
           <Link href="/" aria-label="Clocked home">

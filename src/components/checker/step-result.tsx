@@ -149,21 +149,34 @@ export function StepResult({
           <div className="mt-2 space-y-2 border-t border-ink/15 pt-4">
             <Row label={lang === "es" ? "Total que exige la ley" : "Total the law requires"} value={m(result.owed)} />
             <Row label={r.paidLine} value={`− ${m(result.paid)}`} muted />
-            <div className="flex items-center justify-between rounded-md bg-ruby-wash px-3 py-3">
-              <span className="text-[15px] font-medium text-ruby-deep">{r.gap}</span>
-              <span className="tnum text-[20px] font-medium tracking-[-0.01em] text-ruby-deep">{m(result.underpaid)}</span>
+            <div
+              className={clsx(
+                "flex items-center justify-between rounded-md px-3 py-3",
+                owedSomething ? "bg-ruby-wash text-ruby-deep" : "bg-paid-wash text-paid",
+              )}
+            >
+              <span className="text-[15px] font-medium">{r.gap}</span>
+              <span className="tnum text-[20px] font-medium tracking-[-0.01em]">{m(result.underpaid)}</span>
             </div>
           </div>
         </motion.section>
 
         {/* Findings */}
         <motion.section {...rise(1.2)} className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-lift sm:p-7">
-          <h2 className="text-[20px] font-light tracking-[-0.01em] text-ink">{r.findings}</h2>
+          <h2 className="text-[20px] font-light tracking-[-0.01em] text-ink">
+            {result.findings.length === 0 ? r.checksTitle : r.findings}
+          </h2>
           {result.findings.length === 0 ? (
-            <p className="mt-4 flex items-center gap-2 text-[15px] text-paid">
-              <CheckCircle2 className="size-5" strokeWidth={1.75} />
-              {r.evenTitle}
-            </p>
+            <ul className="mt-5 space-y-3">
+              {r.checks.map((c) => (
+                <li key={c} className="flex items-center gap-3 text-[15px] text-ink">
+                  <span className="flex size-7 items-center justify-center rounded-full bg-paid-wash">
+                    <CheckCircle2 className="size-4 text-paid" strokeWidth={2} />
+                  </span>
+                  {c}
+                </li>
+              ))}
+            </ul>
           ) : (
             <ul className="mt-5 space-y-4">
               {result.findings.map((f, i) => (
@@ -238,14 +251,23 @@ export function StepResult({
       )}
 
       <motion.div {...rise(1.7)} className="flex flex-wrap items-center gap-3 pt-2">
-        <Button size="lg" onClick={onClaim}>
-          {r.cta}
-          <ArrowRight className="size-4" strokeWidth={1.75} />
-        </Button>
-        <Button size="lg" variant="ghost" onClick={onEdit}>
-          <Pencil className="size-4" strokeWidth={1.75} />
-          {r.edit}
-        </Button>
+        {owedSomething ? (
+          <Button size="lg" onClick={onClaim}>
+            {r.cta}
+            <ArrowRight className="size-4" strokeWidth={1.75} />
+          </Button>
+        ) : (
+          <Button size="lg" onClick={onEdit}>
+            {r.another}
+            <ArrowRight className="size-4" strokeWidth={1.75} />
+          </Button>
+        )}
+        {owedSomething && (
+          <Button size="lg" variant="ghost" onClick={onEdit}>
+            <Pencil className="size-4" strokeWidth={1.75} />
+            {r.edit}
+          </Button>
+        )}
       </motion.div>
     </div>
   );
