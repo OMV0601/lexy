@@ -122,11 +122,18 @@ export function shiftMinutes(shift: Shift): number {
  * into overtime.
  */
 export function classifyWeek(shifts: Shift[], restBreaksProvided: boolean): DayBreakdown[] {
-  const minutesByDay = new Map<Weekday, { minutes: number; breakMinutes: number }>();
-  for (const shift of shifts) {
-    const entry = minutesByDay.get(shift.day) ?? { minutes: 0, breakMinutes: 0 };
+  const minutesByDay = new Map<Weekday, { minutes: number; breakMinutes: number; lastEnd: number | null }>();
+  const ordered = [...shifts].sort((a, b) => a.day - b.day || parseClock(a.start) - parseClock(b.start));
+  for (const shift of ordered) {
+    const entry = minutesByDay.get(shift.day) ?? { minutes: 0, breakMinutes: 0, lastEnd: null };
+    const start = parseClock(shift.start);
+    let end = parseClock(shift.end);
+    if (end <= start) end += MINUTES_PER_DAY;
     entry.minutes += shiftMinutes(shift);
     entry.breakMinutes += Math.max(0, shift.breakMinutes);
+    // Time off the clock between two shifts on the same day is a meal break.
+    if (entry.lastEnd !== null && start > entry.lastEnd) entry.breakMinutes += start - entry.lastEnd;
+    entry.lastEnd = Math.max(entry.lastEnd ?? 0, end);
     minutesByDay.set(shift.day, entry);
   }
 
@@ -237,6 +244,14 @@ export function computeWeek(input: WeekInput): WeekResult {
   const minimumForAllHours = round2(minimumWage * totalHours);
   const liquidatedDamages = round2(Math.max(0, minimumForAllHours - paid));
 
+  // Wages for time worked, before break premiums. Overtime is only reported as
+  // unpaid when pay fell short of this; a shortfall that is only break
+  // premiums is not an overtime violation.
+  const timeWagesOwed = round2(
+    lines.filter((l) => l.id === "regular" || l.id === "overtime" || l.id === "doubleTime").reduce((s, l) => s + l.amount, 0),
+  );
+  const timeWagesShort = paid < timeWagesOwed;
+
   const findings: Finding[] = [];
   if (underpaid > 0) {
     if (effectiveHourlyRate < minimumWage) {
@@ -246,14 +261,14 @@ export function computeWeek(input: WeekInput): WeekResult {
         values: { effectiveRate: effectiveHourlyRate, minimumWage, hours: totalHours },
       });
     }
-    if (overtimeHours > 0) {
+    if (overtimeHours > 0 && timeWagesShort) {
       findings.push({
         id: "unpaid-overtime",
         citation: CITATIONS.overtime,
         values: { hours: overtimeHours, rate: overtimeRate },
       });
     }
-    if (doubleTimeHours > 0) {
+    if (doubleTimeHours > 0 && timeWagesShort) {
       findings.push({
         id: "unpaid-double-time",
         citation: CITATIONS.overtime,

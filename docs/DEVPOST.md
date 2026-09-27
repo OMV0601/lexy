@@ -54,7 +54,7 @@ Anything the model returns is validated again (days 0 to 6, times in HH:MM, brea
 | Three-year lookback | Cal. Code Civ. Proc. §338(a) |
 | No retaliation; protections apply regardless of immigration status | Cal. Lab. Code §§98.6, 1171.5 |
 
-The engine has 31 automated tests, including Rosa's week checked to the cent, weekly overtime conversion, the 7th-day rule, overnight shifts, two shifts on one day, and a fairly paid week that must come out at $0.
+The engine and schedule reader have 35 automated tests, including Rosa's week checked to the cent, weekly overtime conversion, the 7th-day rule, overnight shifts, two shifts on one day, a split shift typed in plain words, and a fairly paid week that must come out at $0.
 
 ## What is synthetic
 

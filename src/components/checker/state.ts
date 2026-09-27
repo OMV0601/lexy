@@ -52,14 +52,17 @@ export type Action =
   | { type: "go"; step: Step }
   | { type: "setJurisdiction"; id: JurisdictionId }
   | { type: "setShifts"; shifts: DraftShift[]; breakMinutes?: number | null }
-  | { type: "upsertShift"; shift: DraftShift }
-  | { type: "removeShift"; day: DraftShift["day"] }
+  | { type: "addShift"; shift: DraftShift }
+  | { type: "updateShift"; index: number; shift: DraftShift }
+  | { type: "removeShift"; index: number }
   | { type: "setBreak"; minutes: 0 | 30 | 60 }
   | { type: "setRest"; value: boolean }
   | { type: "setPayKind"; kind: "flat" | "hourly" }
   | { type: "setField"; field: "amount" | "rate" | "received" | "workerName" | "employerName"; value: string }
   | { type: "load"; state: CheckerState }
   | { type: "reset" };
+
+const byDayThenStart = (a: DraftShift, b: DraftShift) => a.day - b.day || a.start.localeCompare(b.start);
 
 const normalizeBreak = (minutes: number): 0 | 30 | 60 => (minutes >= 45 ? 60 : minutes >= 15 ? 30 : 0);
 
@@ -72,16 +75,16 @@ export function reducer(state: CheckerState, action: Action): CheckerState {
     case "setShifts":
       return {
         ...state,
-        shifts: [...action.shifts].sort((a, b) => a.day - b.day),
+        shifts: [...action.shifts].sort(byDayThenStart),
         breakMinutes: action.breakMinutes == null ? state.breakMinutes : normalizeBreak(action.breakMinutes),
       };
-    case "upsertShift":
-      return {
-        ...state,
-        shifts: [...state.shifts.filter((s) => s.day !== action.shift.day), action.shift].sort((a, b) => a.day - b.day),
-      };
+    case "addShift":
+      return { ...state, shifts: [...state.shifts, action.shift].sort(byDayThenStart) };
+    case "updateShift":
+      // Kept in place (not re-sorted) so the shift being edited stays selected.
+      return { ...state, shifts: state.shifts.map((s, i) => (i === action.index ? action.shift : s)) };
     case "removeShift":
-      return { ...state, shifts: state.shifts.filter((s) => s.day !== action.day) };
+      return { ...state, shifts: state.shifts.filter((_, i) => i !== action.index) };
     case "setBreak":
       return { ...state, breakMinutes: action.minutes };
     case "setRest":
@@ -113,12 +116,25 @@ export function payInput(state: CheckerState): PayInput | null {
   return { kind: "hourly", rate, amountReceived: received };
 }
 
+/**
+ * Shifts as the engine takes them. The meal break is asked once per day, so it
+ * comes off the first shift of each day only; on a split-shift day the time
+ * between shifts already counts as the break.
+ */
+export function engineShifts(state: Pick<CheckerState, "shifts" | "breakMinutes">): Shift[] {
+  const firstOfDay = new Map<number, DraftShift>();
+  for (const s of [...state.shifts].sort(byDayThenStart)) if (!firstOfDay.has(s.day)) firstOfDay.set(s.day, s);
+  return state.shifts.map((s) => ({ ...s, breakMinutes: firstOfDay.get(s.day) === s ? state.breakMinutes : 0 }));
+}
+
+export const workedDays = (shifts: DraftShift[]) => new Set(shifts.map((s) => s.day)).size;
+
 export function weekInput(state: CheckerState): WeekInput | null {
   const pay = payInput(state);
   if (!state.jurisdiction || state.shifts.length === 0 || !pay) return null;
   return {
     jurisdiction: state.jurisdiction,
-    shifts: state.shifts.map((s) => ({ ...s, breakMinutes: state.breakMinutes })),
+    shifts: engineShifts(state),
     pay,
     restBreaksProvided: state.restBreaks !== false,
   };

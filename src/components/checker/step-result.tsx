@@ -6,7 +6,7 @@ import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n";
 import { hours as fmtHours, money } from "@/lib/format";
 import { projectUnderpayment, type WeekResult } from "@/lib/wage/engine";
-import { JURISDICTIONS, LOOKBACK_WEEKS, type Citation } from "@/lib/wage/law";
+import { CITATIONS, JURISDICTIONS, LOOKBACK_WEEKS, type Citation } from "@/lib/wage/law";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "./count-up";
 
@@ -241,9 +241,14 @@ export function StepResult({
                 aria-label={r.zoomTitle}
                 className="mt-6 w-full accent-[#c4144d]"
               />
-              <p className="mt-3 text-[13px] text-ink-2">{r.zoomNote}</p>
+              <p className="mt-3 text-[13px] text-ink-2">
+                {r.zoomNote} <CiteLink citation={CITATIONS.lookback} className="align-middle" />
+              </p>
               {result.liquidatedDamages > 0 && (
-                <p className="mt-2 text-[13px] text-ink-2">{r.liquidated(m(result.liquidatedDamages))}</p>
+                <p className="mt-2 text-[13px] text-ink-2">
+                  {r.liquidated(m(result.liquidatedDamages))}{" "}
+                  <CiteLink citation={CITATIONS.liquidatedDamages} className="align-middle" />
+                </p>
               )}
             </div>
           </div>

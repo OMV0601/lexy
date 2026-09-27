@@ -153,9 +153,12 @@ export function parseWeekDescription(input: string): ParsedWeek {
     .normalize("NFC")
     .replace(/[–—]/g, "-");
   const breakMinutes = readBreak(text);
-  const byDay = new Map<Weekday, Shift>();
+  const byDay = new Map<Weekday, Shift[]>();
 
   // Each time range applies to the days mentioned since the previous range.
+  // A range with no days of its own is a second shift on the same days
+  // ("Mon–Fri 8am–12pm and 5pm–9pm"); a range that names days replaces what
+  // those days had ("Mon–Sat 8–8, Saturday 10–4").
   let cursor = 0;
   let lastDays: Weekday[] = [];
   for (const match of text.matchAll(TIME_RANGE_RE)) {
@@ -165,20 +168,27 @@ export function parseWeekDescription(input: string): ParsedWeek {
     const before = text.slice(cursor, match.index);
     cursor = (match.index ?? 0) + match[0].length;
     let days = readDays(before);
-    if (days.length === 0) {
+    if (days.length === 0 && lastDays.length === 0) {
       // Days may follow the time: "8am-8pm Monday through Saturday".
       const after = text.slice(cursor).split(/[;\n.]|\d{1,2}(?::\d{2})?\s*(?:am|pm)/)[0];
       days = readDays(after);
     }
-    if (days.length === 0) days = lastDays;
+    const splitShift = days.length === 0;
+    if (splitShift) days = lastDays;
     if (days.length === 0) continue;
     lastDays = days;
     const [s, e] = resolveRange(start, end);
     for (const day of days) {
-      byDay.set(day, { day, start: fmt(s), end: fmt(e), breakMinutes: breakMinutes ?? 0 });
+      // The stated meal break belongs to the day, so it is taken from the first shift only.
+      const shift: Shift = { day, start: fmt(s), end: fmt(e), breakMinutes: 0 };
+      const existing = splitShift ? (byDay.get(day) ?? []) : [];
+      if (existing.length === 0) shift.breakMinutes = breakMinutes ?? 0;
+      byDay.set(day, [...existing, shift]);
     }
   }
 
-  const shifts = [...byDay.values()].sort((a, b) => a.day - b.day);
+  const shifts = [...byDay.values()]
+    .flat()
+    .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start));
   return { shifts, breakMinutes, understood: shifts.length > 0 };
 }

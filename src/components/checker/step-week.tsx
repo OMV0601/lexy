@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Sparkles, Trash2, Wand2, Zap } from "lucide-react";
+import { Plus, Sparkles, Trash2, Wand2, Zap } from "lucide-react";
 import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n";
 import { hours as fmtHours } from "@/lib/format";
-import { shiftMinutes, type Weekday } from "@/lib/wage/engine";
+import { parseClock, shiftMinutes, type Weekday } from "@/lib/wage/engine";
 import { parseWeekDescription } from "@/lib/wage/parse";
 import { Button } from "@/components/ui/button";
-import type { CheckerState, DraftShift } from "./state";
+import { engineShifts, workedDays, type CheckerState, type DraftShift } from "./state";
 import { Segmented, StepHeading } from "./ui";
 import { WeekCalendar } from "./week-calendar";
 
@@ -22,7 +22,8 @@ type ReadStatus =
 export function StepWeek({
   state,
   onSetShifts,
-  onUpsert,
+  onAdd,
+  onUpdate,
   onRemove,
   onBreak,
   onRest,
@@ -31,8 +32,9 @@ export function StepWeek({
 }: {
   state: CheckerState;
   onSetShifts: (shifts: DraftShift[], breakMinutes: number | null) => void;
-  onUpsert: (shift: DraftShift) => void;
-  onRemove: (day: Weekday) => void;
+  onAdd: (shift: DraftShift) => void;
+  onUpdate: (index: number, shift: DraftShift) => void;
+  onRemove: (index: number) => void;
   onBreak: (minutes: 0 | 30 | 60) => void;
   onRest: (value: boolean) => void;
   /** Demo mode: type this text into the box, then read it. */
@@ -43,13 +45,11 @@ export function StepWeek({
   const w = t.check.week;
   const [text, setText] = useState("");
   const [status, setStatus] = useState<ReadStatus>({ kind: "idle" });
-  const [selected, setSelected] = useState<Weekday | null>(null);
+  /** Index into state.shifts of the shift being edited. */
+  const [selected, setSelected] = useState<number | null>(null);
   const typingRef = useRef(false);
 
-  const totalMinutes = state.shifts.reduce(
-    (s, sh) => s + shiftMinutes({ ...sh, breakMinutes: state.breakMinutes }),
-    0,
-  );
+  const totalMinutes = engineShifts(state).reduce((s, sh) => s + shiftMinutes(sh), 0);
 
   async function read(input: string) {
     const value = input.trim();
@@ -109,12 +109,37 @@ export function StepWeek({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoType]);
 
-  const selectedShift = state.shifts.find((s) => s.day === selected) ?? null;
+  const selectedShift = selected === null ? null : (state.shifts[selected] ?? null);
+  const shiftsThatDay = selectedShift ? state.shifts.filter((s) => s.day === selectedShift.day) : [];
+
+  /** Index the new shift will have once the reducer sorts it in. */
+  const indexAfterAdd = (shift: DraftShift) =>
+    [...state.shifts, shift]
+      .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start))
+      .indexOf(shift);
 
   function addShift(day: Weekday) {
     const template = state.shifts[state.shifts.length - 1];
-    onUpsert({ day, start: template?.start ?? "09:00", end: template?.end ?? "17:00" });
-    setSelected(day);
+    const shift = { day, start: template?.start ?? "09:00", end: template?.end ?? "17:00" };
+    onAdd(shift);
+    setSelected(indexAfterAdd(shift));
+  }
+
+  /** A second shift on the same day, starting an hour after the latest one ends. */
+  function addSplitShift(day: Weekday) {
+    const latestEnd = Math.max(
+      ...state.shifts.filter((s) => s.day === day).map((s) => {
+        const start = parseClock(s.start);
+        const end = parseClock(s.end);
+        return end <= start ? end + 1440 : end;
+      }),
+    );
+    const start = Math.min(latestEnd + 60, 23 * 60);
+    const end = Math.min(start + 4 * 60, 23 * 60 + 45);
+    const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+    const shift = { day, start: clock(start), end: clock(end) };
+    onAdd(shift);
+    setSelected(indexAfterAdd(shift));
   }
 
   return (
@@ -185,7 +210,7 @@ export function StepWeek({
         shifts={state.shifts}
         dayLabels={w.days}
         selected={selected}
-        onSelect={(d) => setSelected(selected === d ? null : d)}
+        onSelect={(i) => setSelected(selected === i ? null : i)}
         onAdd={addShift}
         addLabel={w.addShift}
       />
@@ -193,7 +218,7 @@ export function StepWeek({
       {/* Totals + shift editor */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="tnum text-[15px] text-ink">
-          {state.shifts.length > 0 ? w.totalHours(fmtHours(totalMinutes / 60, lang), state.shifts.length) : w.empty}
+          {state.shifts.length > 0 ? w.totalHours(fmtHours(totalMinutes / 60, lang), workedDays(state.shifts)) : w.empty}
         </p>
         {state.shifts.length > 0 && !selectedShift && <p className="text-[13px] text-mute">{w.selectHint}</p>}
       </div>
@@ -201,7 +226,7 @@ export function StepWeek({
       <AnimatePresence>
         {selectedShift && (
           <motion.div
-            key={selectedShift.day}
+            key={selected}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -214,20 +239,32 @@ export function StepWeek({
               <TimeField
                 label={w.start}
                 value={selectedShift.start}
-                onChange={(v) => onUpsert({ ...selectedShift, start: v })}
+                onChange={(v) => onUpdate(selected!, { ...selectedShift, start: v })}
               />
-              <TimeField label={w.end} value={selectedShift.end} onChange={(v) => onUpsert({ ...selectedShift, end: v })} />
-              <Button
-                variant="ghost"
-                className="ml-auto text-ruby-deep hover:text-ruby-deep"
-                onClick={() => {
-                  onRemove(selectedShift.day);
-                  setSelected(null);
-                }}
-              >
-                <Trash2 className="size-4" strokeWidth={1.75} />
-                {w.remove}
-              </Button>
+              <TimeField
+                label={w.end}
+                value={selectedShift.end}
+                onChange={(v) => onUpdate(selected!, { ...selectedShift, end: v })}
+              />
+              <div className="ml-auto flex flex-wrap gap-2">
+                {shiftsThatDay.length < 3 && (
+                  <Button variant="ghost" onClick={() => addSplitShift(selectedShift.day)}>
+                    <Plus className="size-4" strokeWidth={1.75} />
+                    {w.addSplit}
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  className="text-ruby-deep hover:text-ruby-deep"
+                  onClick={() => {
+                    onRemove(selected!);
+                    setSelected(null);
+                  }}
+                >
+                  <Trash2 className="size-4" strokeWidth={1.75} />
+                  {w.remove}
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}

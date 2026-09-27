@@ -71,12 +71,14 @@ export function StepClaim({
         <section className="border-b border-hairline py-6">
           <h3 className="text-eyebrow mb-3 text-mute">{c.schedule}</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-4">
-            {state.shifts.map((s) => (
-              <p key={s.day} className="tnum text-[14px] text-ink">
-                <span className="inline-block w-12 text-mute">{w.days[s.day]}</span>
-                {clockLabel(s.start)}–{clockLabel(s.end)}
-              </p>
-            ))}
+            {[...state.shifts]
+              .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start))
+              .map((s, i) => (
+                <p key={i} className="tnum text-[14px] text-ink">
+                  <span className="inline-block w-12 text-mute">{w.days[s.day]}</span>
+                  {clockLabel(s.start)}–{clockLabel(s.end)}
+                </p>
+              ))}
           </div>
           <p className="tnum mt-3 text-[14px] text-ink-2">
             {c.hoursWorked}: {fmtHours(result.totalHours, lang)} · {t.check.week.mealQ}: {w.mealOptions[state.breakMinutes === 0 ? 0 : state.breakMinutes === 30 ? 1 : 2]}
@@ -132,6 +134,18 @@ export function StepClaim({
               </p>
             </div>
           </div>
+          {result.liquidatedDamages > 0 && (
+            <p className="tnum mt-3 flex flex-wrap items-baseline justify-between gap-2 px-1 text-[14px] text-ink-2">
+              <span>
+                {c.liquidatedLabel}{" "}
+                <span className="whitespace-nowrap text-[12px] text-primary-deep">({CITATIONS.liquidatedDamages.cite})</span>
+              </span>
+              <span className="text-ink">{m(result.liquidatedDamages)}</span>
+            </p>
+          )}
+          <p className="mt-2 px-1 text-[13px] text-mute">
+            {r.zoomNote} <span className="whitespace-nowrap text-primary-deep">({CITATIONS.lookback.cite})</span>
+          </p>
         </section>
 
         <section className="rounded-lg bg-canvas-soft p-5 ring-1 ring-hairline sm:p-6">

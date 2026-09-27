@@ -154,8 +154,9 @@ export function Checker({ demo }: { demo?: string | null }) {
               <StepWeek
                 state={state}
                 onSetShifts={(shifts, breakMinutes) => dispatch({ type: "setShifts", shifts, breakMinutes })}
-                onUpsert={(shift) => dispatch({ type: "upsertShift", shift })}
-                onRemove={(day) => dispatch({ type: "removeShift", day })}
+                onAdd={(shift) => dispatch({ type: "addShift", shift })}
+                onUpdate={(index, shift) => dispatch({ type: "updateShift", index, shift })}
+                onRemove={(index) => dispatch({ type: "removeShift", index })}
                 onBreak={(minutes) => dispatch({ type: "setBreak", minutes })}
                 onRest={(value) => dispatch({ type: "setRest", value })}
                 autoType={playing ? autoType : null}
