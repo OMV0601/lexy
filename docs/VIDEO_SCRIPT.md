@@ -25,7 +25,7 @@
 | 1:38–1:52 | Auto-scroll to "Over time", counter climbs to $59,384 | "If every week looked like this, that's fifty-nine thousand dollars a year. California lets her claim three years back." |
 | 1:52–2:05 | Claim summary page | "Then Clocked gives her a claim summary to bring to a free Labor Commissioner claim, with her rights: no retaliation, and her immigration status doesn't matter." |
 | 2:05–2:15 | Clip 3: Spanish typing and calendar | "And all of it works in Spanish." |
-| 2:15–2:40 | Clip 4: click the §510 chip, statute opens. Then a simple slide: "AI reads. The law decides." with the four layers | "The AI only reads Rosa's words. Every dollar comes from plain code written from the Labor Code, with thirty-one automated tests. No chatbot guesses what she's owed, and if the AI is unavailable, Clocked still works." |
+| 2:15–2:40 | Clip 4: click the §510 chip, statute opens. Then a simple slide: "AI reads. The law decides." with the four layers | "The AI only reads Rosa's words. Every dollar comes from plain code written from the Labor Code, with thirty-five automated tests. No chatbot guesses what she's owed, and if the AI is unavailable, Clocked still works." |
 | 2:40–2:55 | Back to the result card, $1,142.00 | "Rosa didn't have a bad job. She had a boss who was taking her wages." |
 | 2:55–3:00 | Logo, tagline, URL | "Clocked. See what you're owed." |
 

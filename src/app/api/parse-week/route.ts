@@ -23,16 +23,16 @@ const WeekSchema = z.object({
         breakMinutes: z.number().int().describe("Unpaid meal break taken, in minutes; 0 if none or not mentioned"),
       }),
     )
-    .describe("One entry per day worked, Monday-first"),
+    .describe("One entry per shift, Monday-first; a split shift is two entries on the same day"),
   understood: z.boolean().describe("False if the text does not describe a work schedule"),
 });
 
 const SYSTEM = `You convert a worker's description of their work week into structured shifts.
 The worker may write in English or Spanish, casually, with typos.
 Rules:
-- The workweek is Monday (0) to Sunday (6). Emit at most one shift per day.
+- The workweek is Monday (0) to Sunday (6). Emit one entry per shift. A split shift ("8 to noon, then 5 to 9") is two entries on the same day.
 - Times are 24-hour "HH:MM". Resolve am/pm from context (e.g. "8 to 8" at a restaurant is 08:00-20:00).
-- breakMinutes is the unpaid meal break the worker actually took. Use 0 when they say they had none or don't mention one.
+- breakMinutes is the unpaid meal break the worker actually took during that shift. Use 0 when they say they had none or don't mention one. The gap between two shifts on one day is not a breakMinutes value.
 - "Six days a week" with no days named means Monday through Saturday.
 - Only include what the text states or clearly implies. Do not invent days or hours.
 - If the text is not about a work schedule, return understood=false and no shifts.`;
@@ -68,12 +68,20 @@ export async function POST(request: Request) {
       return Response.json({ error: "not_understood" }, { status: 422 });
     }
 
-    const seen = new Set<number>();
+    // At most three shifts a day, and a shift may not start inside another one.
+    const perDay = new Map<number, Array<{ start: string; end: string }>>();
     const shifts = response.parsed_output.shifts
-      .filter((s) => s.day >= 0 && s.day <= 6 && HHMM.test(s.start) && HHMM.test(s.end))
-      .filter((s) => (seen.has(s.day) ? false : (seen.add(s.day), true)))
-      .map((s) => ({ ...s, breakMinutes: Math.min(Math.max(0, s.breakMinutes), 240) }))
-      .sort((a, b) => a.day - b.day);
+      .filter((s) => s.day >= 0 && s.day <= 6 && HHMM.test(s.start) && HHMM.test(s.end) && s.start !== s.end)
+      .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start))
+      .filter((s) => {
+        const taken = perDay.get(s.day) ?? [];
+        if (taken.length >= 3) return false;
+        const last = taken[taken.length - 1];
+        if (last && (last.end <= last.start || s.start < last.end)) return false;
+        perDay.set(s.day, [...taken, s]);
+        return true;
+      })
+      .map((s) => ({ ...s, breakMinutes: Math.min(Math.max(0, s.breakMinutes), 240) }));
 
     if (!response.parsed_output.understood || shifts.length === 0) {
       return Response.json({ error: "not_understood" }, { status: 422 });

@@ -38,14 +38,16 @@ export function WeekCalendar({
 }: {
   shifts: DraftShift[];
   dayLabels: string[];
-  selected: Weekday | null;
-  onSelect: (day: Weekday) => void;
+  /** Index into `shifts`. */
+  selected: number | null;
+  onSelect: (index: number) => void;
   onAdd: (day: Weekday) => void;
   addLabel: string;
 }) {
   const { lo, hi } = axis(shifts);
   const height = (hi - lo) * ROW;
-  const byDay = new Map(shifts.map((s) => [s.day, s]));
+  const byDay = new Map<Weekday, Array<{ shift: DraftShift; index: number }>>();
+  shifts.forEach((shift, index) => byDay.set(shift.day, [...(byDay.get(shift.day) ?? []), { shift, index }]));
   const hourMarks = Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
 
   return (
@@ -80,9 +82,7 @@ export function WeekCalendar({
         </div>
 
         {DAYS.map((d) => {
-          const shift = byDay.get(d);
-          const s = shift ? span(shift) : null;
-          const isSelected = selected === d;
+          const dayShifts = byDay.get(d) ?? [];
           return (
             <div
               key={d}
@@ -93,36 +93,45 @@ export function WeekCalendar({
               }}
             >
               <AnimatePresence>
-                {shift && s ? (
-                  <motion.button
-                    type="button"
-                    key={`${shift.day}`}
-                    onClick={() => onSelect(d)}
-                    initial={{ scaleY: 0, opacity: 0 }}
-                    animate={{ scaleY: 1, opacity: 1 }}
-                    exit={{ scaleY: 0, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 170, damping: 22, delay: d * 0.07 }}
-                    className={clsx(
-                      "absolute inset-x-0.5 origin-top overflow-hidden rounded-[7px] px-1 text-left text-white sm:px-1.5",
-                      "bg-gradient-to-b from-primary-soft to-primary-deep shadow-[0_6px_16px_-6px_rgba(68,52,212,0.6)]",
-                      isSelected && "ring-2 ring-offset-2 ring-offset-canvas-soft ring-magenta",
-                    )}
-                    style={{ top: (s.start - lo) * ROW, height: (s.end - s.start) * ROW }}
-                    aria-label={`${dayLabels[d]} ${clockLabel(shift.start)}–${clockLabel(shift.end)}`}
-                  >
-                    <span className="tnum absolute top-1 left-1 text-[10px] leading-tight font-medium opacity-90 sm:left-1.5 sm:text-[11px]">
-                      {clockLabel(shift.start, true)}
-                    </span>
-                    <span className="tnum absolute bottom-1 left-1 text-[10px] leading-tight opacity-80 sm:left-1.5 sm:text-[11px]">
-                      {clockLabel(shift.end, true)}
-                    </span>
-                    <span className="tnum absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[13px] font-medium sm:text-[15px]">
-                      {Math.round((s.end - s.start) * 10) / 10}h
-                    </span>
-                  </motion.button>
-                ) : null}
+                {dayShifts.map(({ shift, index }, n) => {
+                  const s = span(shift);
+                  const isSelected = selected === index;
+                  const short = s.end - s.start < 3;
+                  return (
+                    <motion.button
+                      type="button"
+                      key={`${shift.day}-${n}`}
+                      onClick={() => onSelect(index)}
+                      initial={{ scaleY: 0, opacity: 0 }}
+                      animate={{ scaleY: 1, opacity: 1 }}
+                      exit={{ scaleY: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 170, damping: 22, delay: d * 0.07 }}
+                      className={clsx(
+                        "absolute inset-x-0.5 origin-top overflow-hidden rounded-[7px] px-1 text-left text-white sm:px-1.5",
+                        "bg-gradient-to-b from-primary-soft to-primary-deep shadow-[0_6px_16px_-6px_rgba(68,52,212,0.6)]",
+                        isSelected && "ring-2 ring-offset-2 ring-offset-canvas-soft ring-magenta",
+                      )}
+                      style={{ top: (s.start - lo) * ROW, height: (s.end - s.start) * ROW }}
+                      aria-label={`${dayLabels[d]} ${clockLabel(shift.start)}–${clockLabel(shift.end)}`}
+                    >
+                      {!short && (
+                        <>
+                          <span className="tnum absolute top-1 left-1 text-[10px] leading-tight font-medium opacity-90 sm:left-1.5 sm:text-[11px]">
+                            {clockLabel(shift.start, true)}
+                          </span>
+                          <span className="tnum absolute bottom-1 left-1 text-[10px] leading-tight opacity-80 sm:left-1.5 sm:text-[11px]">
+                            {clockLabel(shift.end, true)}
+                          </span>
+                        </>
+                      )}
+                      <span className="tnum absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[13px] font-medium sm:text-[15px]">
+                        {Math.round((s.end - s.start) * 10) / 10}h
+                      </span>
+                    </motion.button>
+                  );
+                })}
               </AnimatePresence>
-              {!shift && (
+              {dayShifts.length === 0 && (
                 <button
                   type="button"
                   onClick={() => onAdd(d)}

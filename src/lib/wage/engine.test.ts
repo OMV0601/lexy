@@ -208,6 +208,24 @@ describe("computeWeek", () => {
     expect(reg.hours).toBe(8);
     expect(ot.hours).toBe(3);
   });
+
+  it("the gap between two shifts on one day counts as the meal break", () => {
+    const [day] = classifyWeek([shift(0, "08:00", "12:00"), shift(0, "17:00", "21:00")], true);
+    expect(day.minutes).toBe(480);
+    expect(day.mealPremium).toBe(false);
+  });
+
+  it("does not report unpaid overtime when only break premiums are short", () => {
+    // 50 hours at $20 with overtime paid in full ($1,100), but no rest breaks.
+    const result = computeWeek({
+      jurisdiction: "ca",
+      shifts: days([0, 1, 2, 3, 4], "08:00", "18:30", 30),
+      pay: { kind: "hourly", rate: 20, amountReceived: 1100 },
+      restBreaksProvided: false,
+    });
+    expect(result.underpaid).toBe(100);
+    expect(result.findings.map((f) => f.id)).toEqual(["missed-rest-breaks"]);
+  });
 });
 
 describe("projectUnderpayment", () => {

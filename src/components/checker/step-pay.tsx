@@ -5,7 +5,7 @@ import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n";
 import { money } from "@/lib/format";
 import { shiftMinutes } from "@/lib/wage/engine";
-import { parseMoney, type CheckerState } from "./state";
+import { engineShifts, parseMoney, type CheckerState } from "./state";
 import { Field, MoneyInput, StepHeading } from "./ui";
 
 export function StepPay({
@@ -19,8 +19,7 @@ export function StepPay({
 }) {
   const { t, lang } = useI18n();
   const p = t.check.pay;
-  const totalHours =
-    state.shifts.reduce((s, sh) => s + shiftMinutes({ ...sh, breakMinutes: state.breakMinutes }), 0) / 60;
+  const totalHours = engineShifts(state).reduce((s, sh) => s + shiftMinutes(sh), 0) / 60;
   const assumed = parseMoney(state.rate) * totalHours;
 
   const kinds = [

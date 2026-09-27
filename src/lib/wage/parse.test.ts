@@ -30,6 +30,28 @@ describe("parseWeekDescription — English", () => {
     ]);
   });
 
+  it("split shift: a second time range with no days of its own", () => {
+    expect(summary("Mon-Wed 8am-12pm and 5pm-9pm, 30 min lunch")).toEqual([
+      "0 08:00-12:00 b30",
+      "0 17:00-21:00 b0",
+      "1 08:00-12:00 b30",
+      "1 17:00-21:00 b0",
+      "2 08:00-12:00 b30",
+      "2 17:00-21:00 b0",
+    ]);
+  });
+
+  it("a later clause that names a day replaces that day's hours", () => {
+    expect(summary("Mon-Sat 8am-8pm, Saturday 10am-4pm")).toEqual([
+      "0 08:00-20:00 b0",
+      "1 08:00-20:00 b0",
+      "2 08:00-20:00 b0",
+      "3 08:00-20:00 b0",
+      "4 08:00-20:00 b0",
+      "5 10:00-16:00 b0",
+    ]);
+  });
+
   it("times before days", () => {
     expect(summary("8am-8pm Monday to Wednesday")).toEqual([
       "0 08:00-20:00 b0",

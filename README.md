@@ -34,7 +34,7 @@ Live at **https://lexy-mocha.vercel.app**
   Worker confirms the shifts on a calendar
         │
         ▼
-  Wage engine ────── plain TypeScript, no AI, 31 unit tests
+  Wage engine ────── plain TypeScript, no AI, 35 unit tests
         │            every number comes from src/lib/wage/law.ts
         ▼
   Result: gap this week, cited ledger, violations, 3-year projection

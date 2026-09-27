@@ -68,6 +68,7 @@ const en = {
       notUnderstood: "We couldn't read that. Try days and times, like “Mon–Fri 9am–5pm”.",
       readBy: (n: number) => `Added ${n} ${n === 1 ? "shift" : "shifts"}. Check them below.`,
       addShift: "Add shift",
+      addSplit: "Add another shift this day",
       start: "Start",
       end: "End",
       breakLabel: "Unpaid break",
@@ -165,6 +166,7 @@ const en = {
       violations: "Violations found",
       total: "Unpaid this week",
       overTime: (w: string) => `If this happened for ${w}`,
+      liquidatedLabel: "Liquidated damages a court may add (this week)",
       next: "What to do next",
       steps: [
         { title: "File a free wage claim", body: "With the California Labor Commissioner. No lawyer needed, and it costs nothing." },
@@ -247,6 +249,7 @@ const es: Dictionary = {
       notUnderstood: "No pudimos leer eso. Prueba con días y horas, como “lunes a viernes de 9 a 5”.",
       readBy: (n: number) => `Agregamos ${n} ${n === 1 ? "turno" : "turnos"}. Revísalos abajo.`,
       addShift: "Agregar turno",
+      addSplit: "Agregar otro turno este día",
       start: "Entrada",
       end: "Salida",
       breakLabel: "Descanso sin pago",
@@ -344,6 +347,7 @@ const es: Dictionary = {
       violations: "Violaciones encontradas",
       total: "No pagado esta semana",
       overTime: (w: string) => `Si esto pasó por ${w}`,
+      liquidatedLabel: "Daños liquidados que un juez puede sumar (esta semana)",
       next: "Qué hacer ahora",
       steps: [
         { title: "Presenta un reclamo gratuito", body: "Ante el Comisionado Laboral de California. No necesitas abogado y no cuesta nada." },
