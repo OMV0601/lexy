@@ -20,13 +20,14 @@ export function StepWhere({
   return (
     <div>
       <StepHeading title={t.check.where.title} body={t.check.where.body} />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div data-tour="cities" className="grid gap-3 sm:grid-cols-2">
         {ORDER.map((id) => {
           const j = JURISDICTIONS[id];
           const active = value === id;
           return (
             <button
               key={id}
+              data-tour={`city-${id}`}
               type="button"
               onClick={() => onChange(id)}
               className={clsx(

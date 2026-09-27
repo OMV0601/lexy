@@ -148,6 +148,7 @@ export function StepWeek({
 
       {/* Describe your week */}
       <form
+        data-tour="describe"
         onSubmit={(e) => {
           e.preventDefault();
           void read(text);
@@ -169,7 +170,7 @@ export function StepWeek({
           </Button>
         </div>
       </form>
-      <div className="mb-6 min-h-5 text-[13px]">
+      <div data-tour="read-status" className="mb-6 min-h-5 text-[13px]">
         <AnimatePresence mode="wait">
           {status.kind === "done" ? (
             <motion.p
@@ -206,6 +207,7 @@ export function StepWeek({
         </AnimatePresence>
       </div>
 
+      <div data-tour="calendar">
       <WeekCalendar
         shifts={state.shifts}
         dayLabels={w.days}
@@ -214,6 +216,7 @@ export function StepWeek({
         onAdd={addShift}
         addLabel={w.addShift}
       />
+      </div>
 
       {/* Totals + shift editor */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -232,7 +235,7 @@ export function StepWeek({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-3 flex flex-wrap items-end gap-4 rounded-lg bg-canvas-soft p-4 ring-1 ring-hairline">
+            <div data-tour="shift-editor" className="mt-3 flex flex-wrap items-end gap-4 rounded-lg bg-canvas-soft p-4 ring-1 ring-hairline">
               <p className="w-full text-[14px] font-medium text-ink sm:w-auto sm:min-w-28 sm:self-center">
                 {w.daysLong[selectedShift.day]}
               </p>
@@ -271,7 +274,7 @@ export function StepWeek({
       </AnimatePresence>
 
       {/* Breaks */}
-      <div className="mt-8 grid gap-4 border-t border-hairline pt-6 sm:grid-cols-2">
+      <div data-tour="breaks" className="mt-8 grid gap-4 border-t border-hairline pt-6 sm:grid-cols-2">
         <div>
           <p className="mb-3 text-[14px] text-ink">{w.mealQ}</p>
           <Segmented

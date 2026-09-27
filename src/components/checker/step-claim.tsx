@@ -49,7 +49,7 @@ export function StepClaim({
       </div>
 
       {/* The document */}
-      <article className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-float sm:p-10 print:p-0 print:shadow-none print:ring-0">
+      <article data-tour="claim-doc" className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-float sm:p-10 print:p-0 print:shadow-none print:ring-0">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-6">
           <div className="flex items-center gap-3">
             <LogoMark className="size-9" />
@@ -61,7 +61,7 @@ export function StepClaim({
           <p className="tnum text-[13px] text-mute">{today}</p>
         </header>
 
-        <div className="grid gap-5 border-b border-hairline py-6 sm:grid-cols-2">
+        <div data-tour="claim-parties" className="grid gap-5 border-b border-hairline py-6 sm:grid-cols-2">
           <DocInput label={c.worker} value={state.workerName} placeholder={c.optional} onChange={(v) => onField("workerName", v)} />
           <DocInput label={c.employer} value={state.employerName} placeholder={c.optional} onChange={(v) => onField("employerName", v)} />
           <DocField label={c.location} value={`${j.name} · ${m(j.minimumWage)}/h (${j.source.cite})`} />
@@ -85,7 +85,7 @@ export function StepClaim({
           </p>
         </section>
 
-        <section className="border-b border-hairline py-6">
+        <section data-tour="claim-violations" className="border-b border-hairline py-6">
           <h3 className="text-eyebrow mb-3 text-mute">{c.violations}</h3>
           <ol className="space-y-2.5">
             {result.findings.map((f, i) => (
@@ -100,7 +100,7 @@ export function StepClaim({
           </ol>
         </section>
 
-        <section className="py-6">
+        <section data-tour="claim-amounts" className="py-6">
           <h3 className="text-eyebrow mb-3 text-mute">{c.amounts}</h3>
           <table className="w-full text-[14px]">
             <tbody className="divide-y divide-hairline">
@@ -148,7 +148,7 @@ export function StepClaim({
           </p>
         </section>
 
-        <section className="rounded-lg bg-canvas-soft p-5 ring-1 ring-hairline sm:p-6">
+        <section data-tour="claim-next" className="rounded-lg bg-canvas-soft p-5 ring-1 ring-hairline sm:p-6">
           <h3 className="text-[18px] font-light tracking-[-0.01em] text-ink">{c.next}</h3>
           <ol className="mt-4 grid gap-4 sm:grid-cols-3">
             {c.steps.map((s, i) => (
@@ -167,7 +167,7 @@ export function StepClaim({
         </p>
       </article>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3 print:hidden">
+      <div data-tour="claim-actions" className="mt-6 flex flex-wrap items-center gap-3 print:hidden">
         <a href={CITATIONS.labor.url} target="_blank" rel="noreferrer" className={buttonClass("primary", "lg")}>
           {c.file}
           <ExternalLink className="size-4" strokeWidth={1.75} />

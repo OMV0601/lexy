@@ -30,7 +30,7 @@ export function StepPay({
   return (
     <div>
       <StepHeading title={p.title} body={p.body} />
-      <div className="mb-8 grid gap-3 sm:grid-cols-2">
+      <div data-tour="pay-kinds" className="mb-8 grid gap-3 sm:grid-cols-2">
         {kinds.map(({ kind, label, hint, Icon }) => {
           const active = state.payKind === kind;
           return (
@@ -61,7 +61,7 @@ export function StepPay({
       </div>
 
       {state.payKind === "flat" ? (
-        <div className="max-w-sm">
+        <div data-tour="pay-amount" className="max-w-sm">
           <Field label={p.amount}>
             <MoneyInput value={state.amount} onChange={(v) => onField("amount", v)} ariaLabel={p.amount} autoFocus />
           </Field>

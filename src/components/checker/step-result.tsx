@@ -16,9 +16,10 @@ const rise = (delay: number) => ({
   transition: { duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] as const },
 });
 
-export function CiteLink({ citation, className }: { citation: Citation; className?: string }) {
+export function CiteLink({ citation, className, tour }: { citation: Citation; className?: string; tour?: string }) {
   return (
     <a
+      data-tour={tour}
       href={citation.url}
       target="_blank"
       rel="noreferrer"
@@ -67,6 +68,7 @@ export function StepResult({
     <div className="space-y-5">
       {/* Hero */}
       <motion.section
+        data-tour="result-hero"
         {...rise(0)}
         className="relative overflow-hidden rounded-xl bg-brand-dark p-6 text-white shadow-hero sm:p-9"
       >
@@ -96,7 +98,7 @@ export function StepResult({
           </div>
 
           {/* Rate comparison */}
-          <div className="rounded-lg bg-white/[0.06] p-5 ring-1 ring-white/10 backdrop-blur">
+          <div data-tour="rate-bars" className="rounded-lg bg-white/[0.06] p-5 ring-1 ring-white/10 backdrop-blur">
             <RateBar
               label={lang === "es" ? "Lo que ganaste por hora" : "What you earned per hour"}
               value={m(result.effectiveHourlyRate)}
@@ -116,7 +118,7 @@ export function StepResult({
 
       <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
         {/* Ledger */}
-        <motion.section {...rise(0.9)} className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-lift sm:p-7">
+        <motion.section data-tour="ledger" {...rise(0.9)} className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-lift sm:p-7">
           <h2 className="text-[20px] font-light tracking-[-0.01em] text-ink">{r.required}</h2>
           <p className="mt-1 text-[13px] text-mute">{r.requiredBody}</p>
           <ul className="mt-5 divide-y divide-hairline">
@@ -138,7 +140,7 @@ export function StepResult({
                           ? `${line.hours} ${r.unitDays(line.hours)} × ${m(line.rate)}`
                           : `${fmtHours(line.hours, lang)} ${r.unitHours} × ${m(line.rate)}`}
                       </span>
-                      <CiteLink citation={line.citation} />
+                      <CiteLink citation={line.citation} tour={line.id === "overtime" ? "cite-overtime" : undefined} />
                     </div>
                   </div>
                   <span className="tnum shrink-0 text-[16px] text-ink">{m(line.amount)}</span>
@@ -162,7 +164,7 @@ export function StepResult({
         </motion.section>
 
         {/* Findings */}
-        <motion.section {...rise(1.2)} className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-lift sm:p-7">
+        <motion.section data-tour="findings" {...rise(1.2)} className="rounded-xl bg-white p-6 ring-1 ring-hairline shadow-lift sm:p-7">
           <h2 className="text-[20px] font-light tracking-[-0.01em] text-ink">
             {result.findings.length === 0 ? r.checksTitle : r.findings}
           </h2>
@@ -203,7 +205,7 @@ export function StepResult({
 
       {/* Over time */}
       {owedSomething && (
-        <motion.section id="over-time" {...rise(1.5)} className="scroll-mt-24 rounded-xl bg-cream p-6 sm:p-8">
+        <motion.section id="over-time" data-tour="over-time" {...rise(1.5)} className="scroll-mt-24 rounded-xl bg-cream p-6 sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <div>
               <p className="text-eyebrow text-lemon">{r.zoomEyebrow}</p>
@@ -221,6 +223,7 @@ export function StepResult({
                 {r.presets.map((p) => (
                   <button
                     key={p.weeks}
+                    data-tour={`preset-${p.weeks}`}
                     type="button"
                     onClick={() => onWeeks(p.weeks)}
                     className={clsx(
@@ -257,7 +260,7 @@ export function StepResult({
 
       <motion.div {...rise(1.7)} className="flex flex-wrap items-center gap-3 pt-2">
         {owedSomething ? (
-          <Button size="lg" onClick={onClaim}>
+          <Button size="lg" onClick={onClaim} data-tour="claim-cta">
             {r.cta}
             <ArrowRight className="size-4" strokeWidth={1.75} />
           </Button>

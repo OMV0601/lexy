@@ -100,6 +100,7 @@ export function WeekCalendar({
                   return (
                     <motion.button
                       type="button"
+                      data-tour={`shift-${shift.day}-${n}`}
                       key={`${shift.day}-${n}`}
                       onClick={() => onSelect(index)}
                       initial={{ scaleY: 0, opacity: 0 }}

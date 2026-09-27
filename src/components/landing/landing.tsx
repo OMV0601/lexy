@@ -9,6 +9,7 @@ import { GradientMesh } from "@/components/ui/gradient-mesh";
 import { Logo } from "@/components/ui/logo";
 import { SiteHeader } from "@/components/site-header";
 import { ResultPreview } from "./result-preview";
+import { WalkthroughButton } from "@/components/tour/walkthrough";
 
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 16 },
@@ -33,10 +34,10 @@ export function Landing() {
       <section className="relative mx-auto grid w-full max-w-6xl gap-14 px-6 pt-12 pb-24 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pt-20">
         <motion.div {...fade()}>
           <p className="text-eyebrow text-primary-deep">{l.eyebrow}</p>
-          <h1 className="text-display-xxl mt-5 text-ink">{l.title}</h1>
+          <h1 data-tour="hero-title" className="text-display-xxl mt-5 text-ink">{l.title}</h1>
           <p className="mt-6 max-w-xl text-[18px] leading-relaxed font-light text-ink-2">{l.lede}</p>
           <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/check" className={buttonClass("primary", "lg")}>
+            <Link href="/check" data-tour="hero-cta" className={buttonClass("primary", "lg")}>
               {l.ctaPrimary}
               <ArrowRight className="size-4" strokeWidth={1.75} />
             </Link>
@@ -46,13 +47,13 @@ export function Landing() {
           </div>
           <p className="mt-5 text-[13px] text-mute">{l.trust}</p>
         </motion.div>
-        <motion.div {...fade(0.15)} className="lg:pl-6">
+        <motion.div data-tour="hero-preview" {...fade(0.15)} className="lg:pl-6">
           <ResultPreview />
         </motion.div>
       </section>
 
       {/* Stat band */}
-      <section className="relative overflow-hidden bg-brand-dark text-white">
+      <section data-tour="stats" className="relative overflow-hidden bg-brand-dark text-white">
         <div aria-hidden className="pointer-events-none absolute -top-40 right-0 size-[520px] rounded-full bg-primary/40 blur-[120px]" />
         <div aria-hidden className="pointer-events-none absolute -bottom-52 left-10 size-[420px] rounded-full bg-ruby/25 blur-[120px]" />
         <div className="relative mx-auto w-full max-w-6xl px-6 py-24">
@@ -141,6 +142,7 @@ export function Landing() {
         </div>
       </section>
 
+      <WalkthroughButton />
       <footer className="border-t border-hairline">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-10">
           <Logo />

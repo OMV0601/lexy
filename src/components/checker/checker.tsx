@@ -195,7 +195,7 @@ export function Checker({ demo }: { demo?: string | null }) {
             ) : (
               <span />
             )}
-            <Button size="lg" disabled={!canContinue} onClick={() => go((state.step + 1) as Step)}>
+            <Button size="lg" data-tour="continue" disabled={!canContinue} onClick={() => go((state.step + 1) as Step)}>
               {state.step === 2 ? t.check.pay.see : t.check.next}
               <ArrowRight className="size-4" strokeWidth={1.75} />
             </Button>
