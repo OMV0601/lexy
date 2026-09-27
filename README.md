@@ -4,11 +4,15 @@
 
 Clocked is a California wage-theft checker. A worker describes their week ("Mon–Sat, 8am to 8pm, no break"), enters what they were paid, and Clocked applies California wage law — minimum wage, daily and weekly overtime, double time, missed meal and rest breaks — to show, line by line and with a citation on every line, how much they are owed. It ends with a claim-ready summary for a free Labor Commissioner wage claim. English and Spanish.
 
+**Live app: https://lexy-mocha.vercel.app**
+
 Built for LexHack 2026 · Access to Justice & Civic Tech.
 
 ![Result screen](docs/screenshots/3-result.png)
 
 ## Try it
+
+Live at **https://lexy-mocha.vercel.app**
 
 | Link | What it does |
 |---|---|
